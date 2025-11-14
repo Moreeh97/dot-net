@@ -19,7 +19,7 @@ class User extends Authenticatable
 
     protected $hidden = [
         'password',
-        'rememberToken',
+        'remember_token',
     ];
 
     protected function casts(): array
@@ -33,5 +33,10 @@ class User extends Authenticatable
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function isUser()
+    {
+        return $this->role === 'user';
     }
 }
