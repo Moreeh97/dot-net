@@ -8,8 +8,18 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+        
     public function dashboard()
     {
+        // تحقق يدوي من صلاحيات الأدمن
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
+        }
+
         $users = User::where('role', 'user')->get();
         return view('admin.dashboard', compact('users'));
     }
@@ -22,11 +32,19 @@ class AdminController extends Controller
 
     public function create()
     {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
+        }
+
         return view('admin.users.create');
     }
 
     public function store(Request $request)
     {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
