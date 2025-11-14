@@ -3,52 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') - نظام التسجيل</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
-    </style>
+    <title>@yield('title') - موقعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">نظام التسجيل</a>
-            
-            <div class="navbar-nav">
-                @auth
-                    <a class="nav-link" href="{{ route('home') }}">الرئيسية</a>
-                    <a class="nav-link" href="{{ route('about') }}">من نحن</a>
-                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-link nav-link">تسجيل الخروج</button>
-                    </form>
-                @else
-                    <a class="nav-link" href="{{ route('user.login') }}">تسجيل الدخول كمستخدم</a>
-                    <a class="nav-link" href="{{ route('admin.login') }}">تسجيل الدخول كأدمن</a>
-                @endauth
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex space-x-4 space-x-reverse">
+                    <a href="{{ route('home') }}" class="hover:text-blue-200">الرئيسية</a>
+                    <a href="{{ route('about') }}" class="hover:text-blue-200">من نحن</a>
+                </div>
+                <div class="flex space-x-4 space-x-reverse">
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="hover:text-blue-200">لوحة التحكم</a>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="hover:text-blue-200">تسجيل خروج</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="hover:text-blue-200">تسجيل دخول</a>
+                    @endauth
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <main class="container mx-auto px-4 py-8">
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                {{ session('success') }}
+            </div>
         @endif
-        
-        @if($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+
+        @if(session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {{ session('error') }}
             </div>
         @endif
 
         @yield('content')
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </main>
 </body>
 </html>
