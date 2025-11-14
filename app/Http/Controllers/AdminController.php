@@ -188,7 +188,7 @@ class AdminController extends Controller
             return $redirect;
         }
 
-        // التأكد من أن المستخدم المراد عرضه ليس أدمن
+        // التأكد من أن المستخدم المراد عرضه ليس أدمن (اختياري)
         if ($user->isAdmin()) {
             return redirect()->route('admin.users.index')->with('error', 'لا يمكن عرض بيانات الأدمن');
         }
