@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -13,42 +14,45 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('users'));
     }
 
-    public function createUser()
+    public function index()
+    {
+        $users = User::where('role', 'user')->get();
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function create()
     {
         return view('admin.users.create');
     }
 
-    public function storeUser(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
             'role' => 'user',
         ]);
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم إضافة المستخدم بنجاح');
+        return redirect()->route('admin.users.index')->with('success', 'تم إضافة المستخدم بنجاح');
     }
 
-    public function editUser($id)
+    public function edit(User $user)
     {
-        $user = User::findOrFail($id);
         return view('admin.users.edit', compact('user'));
     }
 
-    public function updateUser(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
-
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
         $user->update([
@@ -56,14 +60,19 @@ class AdminController extends Controller
             'email' => $request->email,
         ]);
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم تحديث المستخدم بنجاح');
+        if ($request->password) {
+            $request->validate([
+                'password' => 'min:6|confirmed',
+            ]);
+            $user->update(['password' => Hash::make($request->password)]);
+        }
+
+        return redirect()->route('admin.users.index')->with('success', 'تم تحديث المستخدم بنجاح');
     }
 
-    public function deleteUser($id)
+    public function destroy(User $user)
     {
-        $user = User::findOrFail($id);
         $user->delete();
-
-        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المستخدم بنجاح');
+        return redirect()->route('admin.users.index')->with('success', 'تم حذف المستخدم بنجاح');
     }
 }
