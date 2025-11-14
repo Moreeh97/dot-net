@@ -18,7 +18,7 @@ class Admin extends Authenticatable
 
     protected $hidden = [
         'password',
-        'rememberToken',
+        'remember_token',
     ];
 
     protected function casts(): array
