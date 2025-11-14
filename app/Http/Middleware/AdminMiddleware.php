@@ -11,10 +11,10 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::guard('admin')->check()) {
+        if (Auth::check() && Auth::user()->isAdmin()) {
             return $next($request);
         }
 
-        return redirect('/admin/login');
+        return redirect('/admin/login')->with('error', 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
     }
 }
