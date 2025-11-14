@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -24,7 +24,13 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('users'));
     }
 
-    public function createUser()
+    public function index()
+    {
+        $users = User::where('role', 'user')->get();
+        return view('admin.users.index', compact('users'));
+    }
+
+    public function create()
     {
         if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
@@ -33,7 +39,7 @@ class AdminController extends Controller
         return view('admin.users.create');
     }
 
-    public function storeUser(Request $request)
+    public function store(Request $request)
     {
         if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
@@ -42,40 +48,29 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
             'role' => 'user',
         ]);
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم إضافة المستخدم بنجاح');
+        return redirect()->route('admin.users.index')->with('success', 'تم إضافة المستخدم بنجاح');
     }
 
-    public function editUser($id)
+    public function edit(User $user)
     {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
-        }
-
-        $user = User::findOrFail($id);
         return view('admin.users.edit', compact('user'));
     }
 
-    public function updateUser(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
-        }
-
-        $user = User::findOrFail($id);
-
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
         $user->update([
@@ -83,18 +78,19 @@ class AdminController extends Controller
             'email' => $request->email,
         ]);
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم تحديث المستخدم بنجاح');
-    }
-
-    public function deleteUser($id)
-    {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'ليس لديك صلاحيات للوصول إلى هذه الصفحة.');
+        if ($request->password) {
+            $request->validate([
+                'password' => 'min:6|confirmed',
+            ]);
+            $user->update(['password' => Hash::make($request->password)]);
         }
 
-        $user = User::findOrFail($id);
-        $user->delete();
+        return redirect()->route('admin.users.index')->with('success', 'تم تحديث المستخدم بنجاح');
+    }
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المستخدم بنجاح');
+    public function destroy(User $user)
+    {
+        $user->delete();
+        return redirect()->route('admin.users.index')->with('success', 'تم حذف المستخدم بنجاح');
     }
 }
